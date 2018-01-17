@@ -146,7 +146,6 @@ input_s_step2 = tf.reduce_sum(routing_cu_step2, axis=1, keep_dims=True, name="in
 DigitCap_output_step2 = squash(input_s_step2, axis=-2, name="DigitCap_output_step2")
 
 
-
 """step3"""
 
 DigitCap_output_step2_tiled = tf.tile(DigitCap_output_step2, [1, PrimaryCap_caps, 1, 1, 1], name="Digit_output_step2_tiled")
@@ -161,7 +160,6 @@ routing_cu_step3 = tf.multiply(routing_c_step3, DigitCap_predicted, name="routin
 input_s_step3 = tf.reduce_sum(routing_cu_step3, axis=1, keep_dims=True, name="input_s_step3")
 
 DigitCap_output_step3 = squash(input_s_step3, axis=-2, name="DigitCap_output_step3")
-
 
 
 DigitCap_output = DigitCap_output_step3
@@ -189,10 +187,12 @@ y_pred = tf.squeeze(y_p_argmax, axis=[1,2], name="y_pred")
 
 
 """6. Labeling"""
+
 y = tf.placeholder(shape=[None], dtype=tf.int64, name="y")
 
 
 """7. Calculate Margin Loss"""
+
 m_plus = 0.9
 m_minus = 0.1
 lambda_ = 0.5
@@ -238,6 +238,8 @@ decoder_input = tf.reshape(DigitCap_output_masked, [-1, DigitCap_caps * DigitCap
 # Tensor("decoder_input:0", shape=(?, 160), dtype=float32)
 
 
+
+
 """9. Decoder"""
 
 # two FC(Fully-connected) ReLU
@@ -251,11 +253,15 @@ with tf.name_scope("decoder"):
     decoder_output = tf.layers.dense(hidden2, n_output, activation=tf.nn.sigmoid, name="decoder_output")
 
 
+
+
 """10. Reconstruction Loss"""
 
 x_flat = tf.reshape(x, [-1, n_output], name="x_flat")
 squared_difference = tf.square(x_flat - decoder_output, name="squared_difference")
 reconstruction_loss = tf.reduce_sum(squared_difference, name="reconstruction_loss")
+
+
 
 """11. Final Loss"""
 
@@ -264,10 +270,12 @@ scale_down = 0.0005
 loss = tf.add(margin_loss, scale_down * reconstruction_loss, name="loss")
 
 
+
 """12. Accuracy"""
 
 correct_prediction = tf.equal(y, y_pred, name="correct_prediction")
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32), name="accuracy")
+
 
 
 """13. Training Operations"""
@@ -276,11 +284,11 @@ optimizer = tf.train.AdamOptimizer()
 training_op = optimizer.minimize(loss, name="training_op")
 
 
+
 """14. Def Initializer and Saver"""
 
 init = tf.global_variables_initializer()
 saver = tf.train.Saver()
-
 
 
 
@@ -300,7 +308,7 @@ ckpt_path = "./saved/"
 
 # If you already trined and saved ckpt file, comment out the following : start --- end
 
-start-----------------------------------------------------------------------------
+##start-----------------------------------------------------------------------------
 
 with tf.Session() as sess:
     with tf.device("/gpu:0"):
@@ -364,6 +372,7 @@ with tf.Session() as sess:
                 best_loss_val = loss_val
 
 
+
 """16. Evaluation"""
 
 iterations_test = mnist.test.num_examples // batch_size
@@ -400,9 +409,10 @@ with tf.Session() as sess:
                 acc_test * 100, loss_test
             ))
 
-# Final test accuracy: 99.5400% Loss: 0.164313 routing 2 steps
-# Final test accuracy: 99.4800% Loss: 0.139580 routing 3 steps
-#-----------------------------------------------------------------------------end
+## Final test accuracy: 99.5400% Loss: 0.164313 routing 2 steps
+## Final test accuracy: 99.4800% Loss: 0.139580 routing 3 steps
+##-----------------------------------------------------------------------------end
+
 
 
 """17. Prediction"""
